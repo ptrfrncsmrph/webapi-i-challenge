@@ -12,19 +12,17 @@ app.post("/api/users", (req, res) => {
       errorMessage: "Please provide name and bio for the user."
     })
   } else {
-    db.insert({
+    const user = {
       name,
       bio,
       created_at: now,
       updated_at: now
-    })
+    }
+    db.insert(user)
       .then(({ id }) => {
         res.status(201).json({
-          id,
-          name,
-          bio,
-          created_at: now,
-          updated_at: now
+          ...user,
+          id
         })
       })
       .catch(() => {
@@ -33,6 +31,18 @@ app.post("/api/users", (req, res) => {
         })
       })
   }
+})
+
+app.get("/api/users", (_req, res) => {
+  db.find()
+    .then(users => {
+      res.status(200).json(users)
+    })
+    .catch(() =>
+      res
+        .status(500)
+        .json({ error: "The users information could not be retrieved." })
+    )
 })
 
 app.listen(4000, () => {
