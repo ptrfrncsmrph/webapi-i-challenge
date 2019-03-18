@@ -14,9 +14,7 @@ app.post("/api/users", (req, res) => {
   } else {
     const user = {
       name,
-      bio,
-      created_at: now,
-      updated_at: now
+      bio
     }
     db.insert(user)
       .then(({ id }) => {
@@ -62,24 +60,29 @@ app.get("/api/users/:id", (req, res) => {
     )
 })
 
-app.delete("/api/users/:id", (req, res) => {
+app.put("/api/users/:id", (req, res) => {
+  const { bio, name } = req.body
   const { id } = req.params
-  db.findById(id).then(user => {
-    user
-      ? db
-          .remove(id)
-          .then(() => {
-            res.status(200).json({
-              message: "User deleted."
+  if (name == null || bio == null) {
+    res.status(400).json({
+      errorMessage: "Please provide name and bio for the user."
+    })
+  } else {
+    db.findById(id).then(user => {
+      user
+        ? db
+            .update(id, { bio, name })
+            .then(() => {
+              res.status(200).json({ ...user, name, bio })
             })
+            .catch(() =>
+              res.status(500).json({ error: "The user could not be updated." })
+            )
+        : res.status(404).json({
+            error: `No user with id ${id}.`
           })
-          .catch(() =>
-            res.status(500).json({ error: "The user could not be removed." })
-          )
-      : res.status(404).json({
-          error: `No user with id ${id}.`
-        })
-  })
+    })
+  }
 })
 
 app.listen(4000, () => {
