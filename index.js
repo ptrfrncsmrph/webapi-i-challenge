@@ -6,7 +6,7 @@ app.use(express.json())
 
 app.post("/api/users", (req, res) => {
   const { name, bio } = req.body
-  const now = new Date()
+  const now = new Date().toISOString()
   if (name == null || bio == null) {
     res.status(400).json({
       errorMessage: "Please provide name and bio for the user."
@@ -43,6 +43,43 @@ app.get("/api/users", (_req, res) => {
         .status(500)
         .json({ error: "The users information could not be retrieved." })
     )
+})
+
+app.get("/api/users/:id", (req, res) => {
+  const { id } = req.params
+  db.findById(id)
+    .then(user => {
+      user
+        ? res.status(200).json(user)
+        : res.status(404).json({
+            error: `No user with id ${id}.`
+          })
+    })
+    .catch(() =>
+      res
+        .status(500)
+        .json({ error: "The user information could not be retrieved." })
+    )
+})
+
+app.delete("/api/users/:id", (req, res) => {
+  const { id } = req.params
+  db.findById(id).then(user => {
+    user
+      ? db
+          .remove(id)
+          .then(() => {
+            res.status(200).json({
+              message: "User deleted."
+            })
+          })
+          .catch(() =>
+            res.status(500).json({ error: "The user could not be removed." })
+          )
+      : res.status(404).json({
+          error: `No user with id ${id}.`
+        })
+  })
 })
 
 app.listen(4000, () => {
